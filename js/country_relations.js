@@ -163,8 +163,8 @@ const createSVG = (nodes, countryCodes, initPositions) => {
 };
 
 (async () => {
-  let graph = await d3.json("/data/output.json");
-  let countryCodes = await d3.json("/data/to_code.json");
+  let graph = await d3.json("../data/output.json");
+  let countryCodes = await d3.json("../data/to_code.json");
   let positionsMaps = [];
   for (let timeserie of graph.timeseries) {
     let map = new Map();

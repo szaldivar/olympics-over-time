@@ -1,0 +1,12 @@
+:root {
+  --navbar_base_color: #5161ce;
+}
+@import url("https://fonts.googleapis.com/css?family=Roboto");
+body {
+  font-family: "Roboto", sans-serif;
+}
+
+h1 {
+  color: var(--navbar_base_color);
+  text-align: center;
+}

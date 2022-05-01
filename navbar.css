@@ -143,6 +143,12 @@ i {
     padding-left: 30px;
     padding-right: 30px;
   }
+  .nav-item {
+    height: 85px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 @media (max-width: 1334px) {

@@ -5,13 +5,13 @@ const getHtmlFileNameForGraph = (navbarId) => {
     case "female-participation":
       return "female_participation.html";
     case "athletes-relations":
-      return null;
+      return "wrestling_overtime.html";
     case "countries-relations":
       return "country_relations.html";
     case "countries-medals":
       return "summer_streamgraph.html";
     case "host-country":
-      return null;
+      return "host_country_performance.html";
     case "athletes-heights":
       return "athletes_heights.html";
     default:

@@ -44,11 +44,13 @@ const createSVG = (nodes, countryCodes, initPositions) => {
     let initNode = initPositions.get(node.id);
     let x = initNode.x;
     let y = initNode.y;
+    let scale = initNode.scale;
     if (node.id === "Individual Olympic Athletes") {
       nodeMap.set(node.id, {
         ...node,
         x,
         y,
+        scale,
         renderFlag: false,
       });
     } else {
@@ -56,6 +58,7 @@ const createSVG = (nodes, countryCodes, initPositions) => {
         ...node,
         x,
         y,
+        scale,
         renderFlag: true,
       });
     }
@@ -70,21 +73,19 @@ const createSVG = (nodes, countryCodes, initPositions) => {
     .attr("viewBox", [-width / 2, -height / 2, width, height])
     .style("font", "12px sans-serif")
     .style("height", "100vh");
-  svg
+  let arrowMarkers = svg
     .append("defs")
     .selectAll("marker")
-    .data(["arrow"])
+    .data(nodes)
     .join("marker")
-    .attr("id", "arrow")
+    .attr("id", (d) => `arrow-${d.id}`)
     .attr("viewBox", "0 -5 10 10")
-    .attr("refX", -NODE_RADIUS)
+    .attr("refX", (d) => -NODE_RADIUS * nodeMap.get(d.id).scale)
     .attr("refY", 0)
     .attr("markerWidth", MARKER_SIZE)
     .attr("markerHeight", MARKER_SIZE)
-    .attr("orient", "auto")
-    .append("path")
-    .attr("fill", "gray")
-    .attr("d", "M10,-5L0,0L10,5");
+    .attr("orient", "auto");
+  arrowMarkers.append("path").attr("fill", "gray").attr("d", "M10,-5L0,0L10,5");
   svg
     .append("defs")
     .selectAll("pattern")
@@ -146,10 +147,11 @@ const createSVG = (nodes, countryCodes, initPositions) => {
     .attr("stroke", "white")
     .attr("stroke-width", 1)
     .attr("r", NODE_RADIUS)
+    .attr("transform", (d) => `scale(${nodeMap.get(d.id).scale})`)
     .attr("fill", (d) => (d.renderFlag ? `url("#${d.id}")` : "black"));
   node
     .append("text")
-    .attr("x", NODE_RADIUS + 1)
+    .attr("x", (d) => nodeMap.get(d.id).scale * NODE_RADIUS + 1)
     .attr("y", "0.31em")
     .text((d) => d.id)
     .attr("style", showText ? null : "display: none")
@@ -159,7 +161,7 @@ const createSVG = (nodes, countryCodes, initPositions) => {
     .attr("stroke", "white")
     .attr("stroke-width", 3);
 
-  return [svg, link, node, nodeMap];
+  return [svg, link, node, nodeMap, arrowMarkers];
 };
 
 (async () => {
@@ -169,11 +171,12 @@ const createSVG = (nodes, countryCodes, initPositions) => {
   for (let timeserie of graph.timeseries) {
     let map = new Map();
     for (let country of timeserie.positions) {
+      country.scale = Math.log10(country.outdegree + 1) + 1;
       map.set(country.id, country);
     }
     positionsMaps.push(map);
   }
-  let [svg, links, nodes, nodesMap] = createSVG(
+  let [svg, links, nodes, nodesMap, arrowMarkers] = createSVG(
     graph.nodes,
     countryCodes,
     positionsMaps[0]
@@ -195,6 +198,13 @@ const createSVG = (nodes, countryCodes, initPositions) => {
       "transform",
       (d) => `translate(${nodesMap.get(d.id).x},${nodesMap.get(d.id).y})`
     );
+    nodes
+      .selectAll("circle")
+      .attr("transform", (d) => `scale(${nodesMap.get(d.id).scale})`);
+    nodes
+      .selectAll("text")
+      .attr("x", (d) => NODE_RADIUS * nodesMap.get(d.id).scale + 1);
+    arrowMarkers.attr("refX", (d) => -NODE_RADIUS * nodesMap.get(d.id).scale);
   };
   let from = 0;
   const interpolate = (from, to) => {
@@ -202,7 +212,10 @@ const createSVG = (nodes, countryCodes, initPositions) => {
     links = links
       .data(newLinks)
       .join("line")
-      .attr("marker-start", () => `url(${new URL(`#arrow`, location)})`);
+      .attr(
+        "marker-start",
+        (d) => `url(${new URL(`#arrow-${d.source}`, location)})`
+      );
     iter(from, to);
   };
   const iter = (from, to, index = 0) => {
@@ -218,7 +231,9 @@ const createSVG = (nodes, countryCodes, initPositions) => {
       let posTo = positionsMaps[to].get(country);
       let x = posFrom.x + ((posTo.x - posFrom.x) / STEPS) * index;
       let y = posFrom.y + ((posTo.y - posFrom.y) / STEPS) * index;
-      nodesMap.set(country, { id: country, x, y, r: posFrom.r });
+      let scale =
+        posFrom.scale + ((posTo.scale - posFrom.scale) / STEPS) * index;
+      nodesMap.set(country, { id: country, x, y, r: posFrom.r, scale });
     }
     draw();
   };
@@ -227,7 +242,10 @@ const createSVG = (nodes, countryCodes, initPositions) => {
     links = links
       .data(newLinks)
       .join("line")
-      .attr("marker-start", () => `url(${new URL(`#arrow`, location)})`);
+      .attr(
+        "marker-start",
+        (d) => `url(${new URL(`#arrow-${d.source}`, location)})`
+      );
     for (let country of nodesMap.keys()) {
       nodesMap.set(country, positionsMaps[to].get(country));
     }

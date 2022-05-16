@@ -1,19 +1,19 @@
 const getHtmlFileNameForGraph = (navbarId) => {
   switch (navbarId) {
     case "country-participation":
-      return "country_participation.html";
+      return "vis/country_participation.html";
     case "female-participation":
-      return "female_participation.html";
+      return "vis/female_participation.html";
     case "athletes-relations":
-      return "wrestling_overtime.html";
+      return "vis/wrestling_overtime.html";
     case "countries-relations":
-      return "country_relations.html";
+      return "vis/country_relations.html";
     case "countries-medals":
-      return "summer_streamgraph.html";
+      return "vis/summer_streamgraph.html";
     case "host-country":
-      return "host_country_performance.html";
+      return "https://jlee6148.shinyapps.io/ind_viz_shiny/";
     case "athletes-heights":
-      return "athletes_heights.html";
+      return "vis/athletes_heights.html";
     default:
       return undefined;
   }
@@ -39,11 +39,11 @@ function test() {
   $("#navbarSupportedContent").on("click", "li", function (e) {
     $("#navbarSupportedContent ul li").removeClass("active");
     $(this).addClass("active");
-    let fileName = getHtmlFileNameForGraph(this.id);
-    if (fileName) {
+    let filePath = getHtmlFileNameForGraph(this.id);
+    if (filePath) {
       let iFrame = `
       <iframe
-        src="vis/${fileName}"
+        src="${filePath}"
         style="width: 100%; height: 100%"
       ></iframe>
       `;
